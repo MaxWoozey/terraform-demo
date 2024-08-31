@@ -133,9 +133,9 @@ resource "bonus_vm_extension" "bonus" {
   protected_settings = <<PROTECTED_SETTINGS
   {
     "script": "ping-test.sh",
-    "storage_account_name": "mystorageaccount",
-    "storage_account_key": "mykey",
-    "container_name": "mycontainer",
+    "storage_account_name": "bonusbos",
+    "storage_account_key": var.azure_storage_account_key,
+    "container_name": "bonuscontainer",
     "blob_name": "ping-test.sh"
   }
   PROTECTED_SETTINGS
