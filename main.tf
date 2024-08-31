@@ -2,52 +2,52 @@ resource "random_pet" "bonus_name" {
   prefix = var.resource_group_name_prefix
 }
 
-resource bonus_vpc_group" "bonus" {
+resource "azurerm_resource_group" "bonus" {
   location = var.resource_group_location
   name     = random_pet.bonus_name.id
 }
 
-resource "bonus_virtual_network" "bonus" {
+resource "azurerm_virtual_network" "bonus" {
   name                = "bonus-network"
   address_space       = ["10.0.0.0/16"]
-  location            = bonus_vpc_group.bonus.location
-  resource_group_name = bonus_vpc_group.bonus.name
+  location            = azurerm_resource_group.bonus.location
+  resource_group_name = azurerm_resource_group.bonus.name
 }
 
-resource "bonus_subnet" "bonus" {
+resource "azurerm_subnet" "bonus" {
   name                 = "bonus-subnet"
-  resource_group_name  = bonus_vpc_group.bonus.name
-  virtual_network_name = bonus_virtual_network..bonus.name
+  resource_group_name  = azurerm_resource_group.bonus.name
+  virtual_network_name = azurerm_virtual_network.bonus.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "bonus_network_interface" "bonus" {
+resource "azurerm_network_interface" "bonus" {
   count               = var.vm_count
   name                = "bonus-nic-${count.index}"
-  location            = bonus_vpc_group.bonus.location
-  resource_group_name = bonus_vpc_group.bonus.name
-  subnet_id           = bonus_subnet.bonus.id
+  location            = azurerm_resource_group.bonus.location
+  resource_group_name = azurerm_resource_group.bonus.name
+  subnet_id           = azurerm_subnet.bonus.id
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = bonus_subnet.bonus.id
+    subnet_id                     = azurerm_subnet.bonus.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "random_passwd" "vm_passwd" {
-  count   = var.vm_count  # The number of password to create, one for each vm
+  count   = var.vm_count  # The number of passwords to create, one for each VM.
   length  = 16
   special = true
 }
 
-resource "bonus_virtual_machine" "bonus" {
+resource "azurerm_virtual_machine" "bonus" {
   count                 = var.vm_count
   name                  = "bonus-vm-${count.index}"
-  location              = bonus_vpc_group.bonus.location
-  resource_group_name   = bonus_vpc_group.bonus.name
+  location              = azurerm_resource_group.bonus.location
+  resource_group_name   = azurerm_resource_group.bonus.name
   network_interface_ids = [
-    bonus_network_interface.bonus[count.index].id,
+    azurerm_network_interface.bonus[count.index].id,
   ]
   vm_size               = "Standard_B1s"
   
@@ -80,10 +80,10 @@ resource "bonus_virtual_machine" "bonus" {
   }
 }
 
-resource "bonus_network_security_group" "bonus" {
+resource "azurerm_network_security_group" "bonus" {
   name = "bonus-nsg"
-  location = bonus_vpc_group.bonus.location
-  resource_group_name   = bonus_vpc_group.bonus.name
+  location = azurerm_resource_group.bonus.location
+  resource_group_name   = azurerm_resource_group.bonus.name
 
   security_rule {
     name                       = "allow_ssh"
@@ -110,33 +110,33 @@ resource "bonus_network_security_group" "bonus" {
   }
 }
 
-resource "bonus_network_interface_security_group_association" "bonus" {
+resource "azurerm_network_interface_security_group_association" "bonus" {
   count                     = var.vm_count
-  network_interface_id      = bonus_network_interface.bonus[count.index].id
-  network_security_group_id = bonus_network_security_group.bonus.id
+  network_interface_id      = azurerm_network_interface.bonus[count.index].id
+  network_security_group_id = azurerm_network_security_group.bonus.id
 }
 
-resource "bonus_vm_extension" "bonus" {
+resource "azurerm_virtual_machine_extension" "bonus" {
   count = var.vm_count
   name = "ping-script-${count.index}"
-  virtual_machine_id = bonus_virtual_machine.bonus[count.index].id
+  virtual_machine_id = azurerm_virtual_machine.bonus[count.index].id
   publisher = "Microsoft.Azure.Extensions"
   type = "CustomScript"
   type_handler_version = "1.10"
 
   settings = <<SETTINGS
-  {
+{
     "script": "ping-test.sh"
-  }
-  SETTINGS
+}
+SETTINGS
 
   protected_settings = <<PROTECTED_SETTINGS
-  {
+{
     "script": "ping-test.sh",
     "storage_account_name": "bonusbos",
-    "storage_account_key": var.azure_storage_account_key,
+    "storage_account_key": "${var.azure_storage_account_key}",
     "container_name": "bonuscontainer",
     "blob_name": "ping-test.sh"
-  }
-  PROTECTED_SETTINGS
+}
+PROTECTED_SETTINGS
 }
