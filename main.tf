@@ -26,7 +26,6 @@ resource "azurerm_network_interface" "bonus" {
   name                = "bonus-nic-${count.index}"
   location            = azurerm_resource_group.bonus.location
   resource_group_name = azurerm_resource_group.bonus.name
-  subnet_id           = azurerm_subnet.bonus.id
 
   ip_configuration {
     name                          = "internal"
@@ -59,10 +58,10 @@ resource "azurerm_virtual_machine" "bonus" {
   }
 
   storage_os_disk {
-    name          = "myosdisk${count.index}"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    managed       = true 
+    name              = "myosdisk${count.index}"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS" 
   }
 
   os_profile {
