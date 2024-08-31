@@ -35,7 +35,7 @@ resource "azurerm_network_interface" "bonus" {
   }
 }
 
-resource "random_passwd" "vm_passwd" {
+resource "random_password" "vm_passwd" {
   count   = var.vm_count  # The number of passwords to create, one for each VM.
   length  = 16
   special = true
@@ -68,7 +68,7 @@ resource "azurerm_virtual_machine" "bonus" {
   os_profile {
     computer_name  = "myvm${count.index}"
     admin_username = "adminuser"
-    admin_password = random_passwd.vm_passwd[count.index].result
+    admin_password = random_password.vm_passwd[count.index].result
   }
 
   os_profile_linux_config {
