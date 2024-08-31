@@ -121,7 +121,7 @@ resource "azurerm_virtual_machine_extension" "bonus" {
   virtual_machine_id = azurerm_virtual_machine.bonus[count.index].id
   publisher = "Microsoft.Azure.Extensions"
   type = "CustomScript"
-  type_handler_version = "1.10"
+  type_handler_version = "2.1.7"
 
   settings = <<SETTINGS
 {
