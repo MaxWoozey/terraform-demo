@@ -7,6 +7,28 @@ resource "azurerm_resource_group" "bonus" {
   name     = random_pet.bonus_name.id
 }
 
+resource "azurerm_storage_account" "bonus" {
+  name                     = "bonusmaxbos"
+  resource_group_name      = azurerm_resource_group.bonus.name
+  location                 = azurerm_resource_group.bonus.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "scripts" {
+  name                  = "scripts"
+  storage_account_name  = azurerm_storage_account.bonus.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "ping_script" {
+  name                   = "ping-test.sh"
+  storage_account_name   = azurerm_storage_account.bonus.name
+  storage_container_name = azurerm_storage_container.scripts.name
+  type                   = "Block"
+  source                 = "scripts/ping-test.sh"
+}
+
 resource "azurerm_virtual_network" "bonus" {
   name                = "bonus-network"
   address_space       = ["10.0.0.0/16"]
@@ -125,7 +147,8 @@ resource "azurerm_virtual_machine_extension" "bonus" {
 
   settings = <<SETTINGS
   {
-    "script": "ping-test.sh"
+    "script": "ping-test.sh",
+    "fileUris": ["${azurerm_storage_account.bonus.primary_blob_endpoint}${azurerm_storage_container.bonus.name}/ping-test.sh"]
   }
   SETTINGS
 }
