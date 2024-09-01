@@ -128,12 +128,4 @@ resource "azurerm_virtual_machine_extension" "bonus" {
     "script": "ping-test.sh"
   }
   SETTINGS
-
-  protected_settings = <<PROTECTED_SETTINGS
-  {
-    "script": "ping-test.sh",
-    "storage_account_name": "bonusbos",
-    "storage_account_key": "${var.azure_storage_account_key}"
-  }
-  PROTECTED_SETTINGS
 }
