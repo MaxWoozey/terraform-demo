@@ -15,9 +15,3 @@ variable "vm_count" {
   default     = 3
   description = "The number of virtual machines to create."
 }
-
-variable "azure_storage_account_key" {
-  description = "The access key for the Azure Storage Account"
-  type        = string
-  sensitive   = true
-}
