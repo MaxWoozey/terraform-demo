@@ -147,7 +147,7 @@ resource "azurerm_virtual_machine_extension" "bonus" {
 
   settings = <<SETTINGS
   {
-    "script": "ping-test.sh",
+    "commandToExecute": "/bin/bash ping-test.sh",
     "fileUris": ["${azurerm_storage_account.bonus.primary_blob_endpoint}${azurerm_storage_container.scripts.name}/ping-test.sh"]
   }
   SETTINGS
