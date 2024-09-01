@@ -21,6 +21,28 @@ resource "azurerm_storage_container" "scripts" {
   container_access_type = "blob"
 }
 
+resource "azurerm_storage_container" "results" {
+  name                  = "results"
+  storage_account_name  = azurerm_storage_account.bonus.name
+  container_access_type = "container"
+}
+
+data "azurerm_storage_account_blob_container_sas" "results_sas" {
+  connection_string    = azurerm_storage_account.bonus.primary_connection_string
+  container_name       = azurerm_storage_container.results.name
+  start                = "2024-09-01T00:00Z"
+  expiry               = "2025-09-01T01:00Z"
+  permissions {
+    read   = true
+    add    = true
+    create = true
+    write  = true
+    delete = true
+    list   = true
+  }
+  content_type        = "application/octet-stream"
+}
+
 resource "azurerm_storage_blob" "ping_script" {
   name                   = "ping-test.sh"
   storage_account_name   = azurerm_storage_account.bonus.name
@@ -101,6 +123,12 @@ resource "azurerm_virtual_machine" "bonus" {
   }
 }
 
+# Calculate IP addresses for each VM and the next VM IP to ping
+locals {
+  vm_ips = [for nic in azurerm_network_interface.bonus : nic.private_ip_address]
+  next_vm_ips = [for i in range(length(local.vm_ips)) : local.vm_ips[(i + 1) % length(local.vm_ips)]]
+}
+
 resource "azurerm_network_security_group" "bonus" {
   name = "bonus-nsg"
   location = azurerm_resource_group.bonus.location
@@ -147,8 +175,17 @@ resource "azurerm_virtual_machine_extension" "bonus" {
 
   settings = <<SETTINGS
   {
-    "commandToExecute": "/bin/bash ping-test.sh",
-    "fileUris": ["${azurerm_storage_account.bonus.primary_blob_endpoint}${azurerm_storage_container.scripts.name}/ping-test.sh"]
+    "commandToExecute": "/bin/bash ping-test.sh ${local.next_vm_ips[count.index]} ${data.azurerm_storage_account_blob_container_sas.results_sas.sas}",
+    "fileUris": [
+      "${azurerm_storage_account.bonus.primary_blob_endpoint}${azurerm_storage_container.scripts.name}/ping-test.sh"
+    ]
   }
   SETTINGS
+}
+
+data "azurerm_storage_blob" "ping_results" {
+  count               = var.vm_count
+  name                = "ping_result_${element(local.next_vm_ips, count.index)}.txt"
+  storage_account_name = azurerm_storage_account.bonus.name
+  storage_container_name = azurerm_storage_container.results.name
 }
