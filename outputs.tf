@@ -8,13 +8,6 @@ output "admin_password" {
   sensitive = true
 }
 
-output "vm_private_ips" {
-  value = [
-    for vm in azurerm_virtual_machine.bonus : vm.network_interface_ids[0]
-  ]
-  description = "The private IP addresses of the VMs."
-}
-
 output "aggregated_ping_results" {
   description = "Aggregated ping results from all VMs"
   value = {
