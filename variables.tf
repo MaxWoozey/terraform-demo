@@ -26,3 +26,4 @@ variable "vm_image" {
   description = "Virtual machine image"
   type        = string
   default     = "Canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest"
+}
