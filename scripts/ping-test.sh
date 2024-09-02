@@ -31,4 +31,4 @@ FILE_PATH="/tmp/ping_result"
 echo "Ping to ${NEXT_VM_IP} from ${CURRENT_VM_IP} ${RESULT}" > ${FILE_PATH}
 
 # Upload the file
-curl -X PUT -T ${FILE_PATH} -H "x-ms-blob-type: BlockBlob" "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${CONTAINER_NAME}/${BLOB_NAME}?${SAS_TOKEN}"
+curl -X PUT -T ${FILE_PATH} -H "x-ms-blob-type: BlockBlob" "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${CONTAINER_NAME}/${BLOB_NAME}${SAS_TOKEN}"
