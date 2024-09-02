@@ -73,5 +73,9 @@ In this demo, I have chosen Azure as the provider.
     ```Bash
       terraform output -json
     ```
+    ![image](https://github.com/user-attachments/assets/df0e7ddd-b9e7-4600-8bb0-6af82375f722)
+    ![image](https://github.com/user-attachments/assets/ec888248-9ada-47db-9a0d-9359d02e9a8d)
+
+
 
 
