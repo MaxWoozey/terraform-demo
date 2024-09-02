@@ -15,3 +15,14 @@ variable "vm_count" {
   default     = 4
   description = "The number of virtual machines to create."
 }
+
+variable "vm_flavor" {
+  description = "Flavor for virtual machines"
+  type        = string
+  default     = "Standard_B1s"  # Example for Azure
+}
+
+variable "vm_image" {
+  description = "Virtual machine image"
+  type        = string
+  default     = "Canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest"  # Exam

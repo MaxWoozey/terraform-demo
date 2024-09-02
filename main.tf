@@ -94,13 +94,13 @@ resource "azurerm_virtual_machine" "bonus" {
   network_interface_ids = [
     azurerm_network_interface.bonus[count.index].id,
   ]
-  vm_size               = "Standard_B1s"
+  vm_size               = var.vm_flavor
   
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-gen2"
-    version   = "latest"
+    publisher = split(":", var.vm_image)[0]
+    offer     = split(":", var.vm_image)[1]
+    sku       = split(":", var.vm_image)[2]
+    version   = split(":", var.vm_image)[3]
   }
 
   storage_os_disk {
