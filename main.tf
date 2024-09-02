@@ -196,8 +196,8 @@ resource "null_resource" "download_blobs" {
       az storage blob download \
         --account-name ${azurerm_storage_account.bonus.name} \
         --container-name ${azurerm_storage_container.results.name} \
-        --name ping_result_${element(local.next_vm_ips, count.index)}.txt \
-        --file ./ping_result_${element(local.next_vm_ips, count.index)}.txt \
+        --name ping_result_${element(local.vm_ips, count.index)}.txt \
+        --file ./ping_result_${element(local.vm_ips, count.index)}.txt \
         --sas-token "${data.azurerm_storage_account_blob_container_sas.results_sas.sas}"
     EOT
   }
