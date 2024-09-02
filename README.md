@@ -18,6 +18,10 @@ terraform-demo/
 
 ## File Descriptions
 - main.tf: The primary configuration file defines the infrastructure, including the VPC, subnets, network interfaces, and virtual machines. This file also includes network security group rules to allow ICMP (ping) traffic between VMs.
+      - To assign different passwords to the admin users on each VM, a random_password resource was introduced:
+  ![image](https://github.com/user-attachments/assets/eba064ea-d1ea-4cae-9bb9-fdacf45669fa)
+  Later used in os_profile session:
+  ![image](https://github.com/user-attachments/assets/89a217da-a5e1-4342-b617-3feaeb663f80)
 - providers.tf: Specifies the Terraform providers used for this deployment, such as Azure, AWS, or GCP. The file contains configurations for authenticating with the chosen cloud provider.
 - variables.tf: Contains variable definitions for customizing the deployment. These variables allow users to specify parameters like VM count, instance types, and network settings.
 - outputs.tf: Defines the output variables that will display after the Terraform deployment. It provides information like VM public IP addresses, network details, and ping test results
@@ -42,13 +46,18 @@ In this demo, I have chosen Azure as the provider.
 3. **Initialize Terraform**:
    ```Bash
     terraform init
-  ```
+   ```
+   ![image](https://github.com/user-attachments/assets/72a121b5-208c-45d1-89b8-76898629755a)
+
 4. **Plan the Deployment**:
    By using -var-file=bonus.tfvars, you can apply the varaibles as you wish, otherwise, the system runs on the default values.
-  ```Bash
-    terraform plan -var-file=bonus.tfvars
-  ```
-5. **Apply the Configuration**:
+   ```Bash
+     terraform plan -var-file=bonus.tfvars
+   ```
+   A plan step by step will be listed, the following is the summary part:
+   ![image](https://github.com/user-attachments/assets/639a60f2-1a9f-47c0-a432-c280b7e352d2)
+
+6. **Apply the Configuration**:
   ```Bash
     terraform apply -var-file=bonus.tfvars
   ```
@@ -58,7 +67,9 @@ In this demo, I have chosen Azure as the provider.
      az login
      az resource list --resource-group <ResourceGroupName> -o table
    ```
-   In this demo, we can check the output to check whether the ping tests are succeeded.
+   ![image](https://github.com/user-attachments/assets/f5735dbc-9f37-4d83-b398-d880d60aee50)
+
+   In this demo, we can check the output to check whether the ping tests have succeeded.
     ```Bash
       terraform output -json
     ```
