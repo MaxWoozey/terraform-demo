@@ -209,7 +209,7 @@ resource "null_resource" "aggregate_ping_results" {
     command = <<EOT
       echo "Combining files..."
       > /tmp/aggregated_ping_results.txt
-      for file in ./ping_result_*.txt; do
+      for file in /tmp/ping_result_*.txt; do
         cat "$file" >> /tmp/aggregated_ping_results.txt
       done
 
