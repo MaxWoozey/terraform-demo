@@ -197,11 +197,11 @@ resource "null_resource" "download_blobs" {
         --account-name ${azurerm_storage_account.bonus.name} \
         --container-name ${azurerm_storage_container.results.name} \
         --name ping_result_${element(local.vm_ips, count.index)}.txt \
-        --file ./ping_result_${element(local.vm_ips, count.index)}.txt \
+        --file /tmp/ping_result_${element(local.vm_ips, count.index)}.txt \
         --sas-token "${data.azurerm_storage_account_blob_container_sas.results_sas.sas}"
     EOT
   }
-  depends_on = [azurerm_storage_account.bonus, azurerm_storage_container.results]
+  depends_on = [azurerm_storage_account.bonus, azurerm_storage_container.results, azurerm_virtual_machine_extension.bonus]
 }
 
 resource "null_resource" "aggregate_ping_results" {
@@ -209,7 +209,7 @@ resource "null_resource" "aggregate_ping_results" {
     command = <<EOT
       echo "Combining files..."
       > /tmp/aggregated_ping_results.txt
-      for file in ./ping_result_*.txt; do
+      for file in /tmp/ping_result_*.txt; do
         cat "$file" >> /tmp/aggregated_ping_results.txt
       done
 
