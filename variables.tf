@@ -1,6 +1,6 @@
 variable "resource_group_location" {
   type        = string
-  default     = "swedencentral"
+  default     = "eastus"
   description = "Location of the resource group."
 }
 
@@ -12,6 +12,6 @@ variable "resource_group_name_prefix" {
 
 variable "vm_count" {
   type        = number
-  default     = 3
+  default     = 4
   description = "The number of virtual machines to create."
 }

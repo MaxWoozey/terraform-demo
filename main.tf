@@ -30,8 +30,10 @@ resource "azurerm_storage_container" "results" {
 data "azurerm_storage_account_blob_container_sas" "results_sas" {
   connection_string    = azurerm_storage_account.bonus.primary_connection_string
   container_name       = azurerm_storage_container.results.name
-  start                = "2024-09-01T00:00Z"
-  expiry               = "2025-09-01T01:00Z"
+  
+
+  start  = "2024-09-01T09:36:05Z"
+  expiry = "2024-09-03T09:36:05Z"
   permissions {
     read   = true
     add    = true
@@ -127,6 +129,9 @@ resource "azurerm_virtual_machine" "bonus" {
 locals {
   vm_ips = [for nic in azurerm_network_interface.bonus : nic.private_ip_address]
   next_vm_ips = [for i in range(length(local.vm_ips)) : local.vm_ips[(i + 1) % length(local.vm_ips)]]
+
+  vm_names = [for vm in azurerm_virtual_machine.bonus : vm.name]
+  next_vm_names = [for i in range(length(local.vm_names)) : local.vm_names[(i + 1) % length(local.vm_names)]]
 }
 
 resource "azurerm_network_security_group" "bonus" {
@@ -175,7 +180,7 @@ resource "azurerm_virtual_machine_extension" "bonus" {
 
   settings = <<SETTINGS
   {
-    "commandToExecute": "/bin/bash ping-test.sh ${local.next_vm_ips[count.index]} ${data.azurerm_storage_account_blob_container_sas.results_sas.sas}",
+    "commandToExecute": "/bin/bash ping-test.sh ${local.vm_names[count.index]} ${local.next_vm_names[count.index]} ${local.next_vm_ips[count.index]} '${data.azurerm_storage_account_blob_container_sas.results_sas.sas}'",
     "fileUris": [
       "${azurerm_storage_account.bonus.primary_blob_endpoint}${azurerm_storage_container.scripts.name}/ping-test.sh"
     ]
@@ -183,9 +188,40 @@ resource "azurerm_virtual_machine_extension" "bonus" {
   SETTINGS
 }
 
-data "azurerm_storage_blob" "ping_results" {
-  count               = var.vm_count
-  name                = "ping_result_${element(local.next_vm_ips, count.index)}.txt"
-  storage_account_name = azurerm_storage_account.bonus.name
-  storage_container_name = azurerm_storage_container.results.name
+resource "null_resource" "download_blobs" {
+  count = var.vm_count
+
+  provisioner "local-exec" {
+    command = <<EOT
+      az storage blob download \
+        --account-name ${azurerm_storage_account.bonus.name} \
+        --container-name ${azurerm_storage_container.results.name} \
+        --name ping_result_${element(local.next_vm_ips, count.index)}.txt \
+        --file /tmp/ping_result_${element(local.next_vm_ips, count.index)}.txt \
+        --sas-token "${data.azurerm_storage_account_blob_container_sas.results_sas.sas}"
+    EOT
+  }
+  depends_on = [azurerm_storage_account.bonus, azurerm_storage_container.results]
+}
+
+resource "null_resource" "aggregate_ping_results" {
+  provisioner "local-exec" {
+    command = <<EOT
+      echo "Combining files..."
+      > /tmp/aggregated_ping_results.txt
+      for file in ./ping_result_*.txt; do
+        cat "$file" >> /tmp/aggregated_ping_results.txt
+      done
+
+      echo "Uploading aggregated results..."
+      az storage blob upload \
+        --account-name ${azurerm_storage_account.bonus.name} \
+        --container-name ${azurerm_storage_container.results.name} \
+        --name aggregated_ping_results.txt \
+        --file /tmp/aggregated_ping_results.txt \
+        --sas-token "${data.azurerm_storage_account_blob_container_sas.results_sas.sas}"
+    EOT
+  }
+
+  depends_on = [null_resource.download_blobs]
 }
